@@ -1,18 +1,56 @@
 <div class="chart-item">
-  <div class="title-container">
-    <h2>Sales Channel Breakdown</h2>
-    <p>Looking at period of June 1 - July 1</p>
-  </div>
-  <div class="stat-container">
-    <div class="counter">
-      <h1>$17,271</h1>
+  <div class="top-container">
+    <div class="left">
+      <h2>{{chartData().chartName}}</h2>
+      <p>Looking at period of June 1 - July 1</p>
     </div>
-    <p>+ 1.12%</p>
+    @if(chartData().chartType === 'line') {
+      <div class="right">
+        <div class="filter-div">
+          <mat-form-field>
+            <mat-label>Filter</mat-label>
+            <mat-select (selectionChange)="this.filterChanged($any($event))">
+              @for (period of periods; track period) {
+                <mat-option [value]="period.value">{{period.viewValue}}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+        @if(selectedFilter() === 'custom'){
+          <div class="date-pickers">
+            <mat-form-field>
+              <mat-label>Enter a date range</mat-label>
+              <mat-date-range-input [rangePicker]="picker">
+                <input (dateChange)="this.startDateChange($any($event))" matStartDate placeholder="Start date">
+                <input (dateChange)="this.endDateChange($any($event))" matEndDate placeholder="End date">
+              </mat-date-range-input>
+              <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-date-range-picker #picker></mat-date-range-picker>
+            </mat-form-field>
+          </div>
+        }
+      </div>
+    }
   </div>
-  <div class="legend-box">
-    <div class="box"></div>
-    <p>In-store</p>
-  </div>
+  @if (modifiedChartData){
+    <div class="all-stats">
+      @for (dataset of modifiedChartData.testData[0].datasets; track $index){
+        <div class="stat-container">
+          <div class="count-group">
+            <div class="counter">
+              <h1>$17,271</h1>
+            </div>
+            <p class="diff-counter">+ 1.12%</p>
+          </div>
+          <div class="legend-box">
+            <div class="box" [style]="{background: (dataset.borderColor)}"></div>
+            <p>{{dataset.label}}</p>
+          </div>
+        </div>
+      }
+    </div>
+  }
+  
   <canvas class="chart-canvas" id="Chart-{{chartId}}">
     {{ chart }}
   </canvas>

@@ -1,5 +1,17 @@
 /* You can add global styles to this file, and also import other style files */
 body {
   font-family: monospace;
-  background: #f5f5f5;;
+  background: #f5f5f5;
+}
+
+.mat-mdc-text-field-wrapper {
+  background: #ffffff !important;
+}
+
+.mat-mdc-form-field-type-mat-select .mat-mdc-text-field-wrapper.mdc-text-field {
+  width: 140px !important;
+}
+
+.mat-select-panel {
+  background: red !important;
 }
