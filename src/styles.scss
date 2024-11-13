@@ -14,15 +14,12 @@ html h1,h2,h3,h4 {
 
 .mat-mdc-text-field-wrapper {
   background: #ffffff !important;
+  height: 30px !important;
 }
 
 .mat-mdc-form-field-type-mat-select .mat-mdc-text-field-wrapper.mdc-text-field {
   padding: 0 !important;
   padding-left: 20px !important;
-}
-
-.mat-mdc-text-field-wrapper {
-  height: 30px !important;
 }
 
 .custom-range .mat-mdc-icon-button {
