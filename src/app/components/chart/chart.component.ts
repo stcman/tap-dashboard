@@ -37,7 +37,7 @@ export class ChartComponent implements AfterViewInit {
     {value: 'last-y', viewValue: 'Last Year'},
     {value: 'custom', viewValue: 'Custom'}
   ];
-  testDataIndex: number = 2;
+  testDataIndex: number = 0;
 
   ngAfterViewInit(): void {
     setTimeout(() => {
