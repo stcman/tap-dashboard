@@ -1,6 +1,7 @@
 import { Component, signal, inject, OnInit } from '@angular/core';
 import { ChartComponent } from '../chart/chart.component';
 import { ChartsService } from '../../services/charts.service';
+import { catchError } from 'rxjs';
 
 @Component({
   selector: 'app-chart-container',
@@ -17,6 +18,10 @@ export class ChartContainerComponent implements OnInit {
   ngOnInit(): void {
     this.chartService
     .getTestData()
+    .pipe(catchError((err) => {
+      console.log(err);
+      throw err;
+    }))
     .subscribe((data) => {
       this.chartData.set(data);
     });
