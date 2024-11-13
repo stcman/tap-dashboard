@@ -8,7 +8,7 @@ import { DateTime } from 'luxon';
 import {provideNativeDateAdapter} from '@angular/material/core';
 import { periods } from '../../model/periods.type';
 import zoomPlugin from 'chartjs-plugin-zoom';
-import { options } from '../common/chartOptions';
+import { options } from '../../common/chartOptions';
 
 Chart.register(...registerables);
 Chart.register(zoomPlugin);
