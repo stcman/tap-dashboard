@@ -8,6 +8,7 @@ import { DateTime } from 'luxon';
 import {provideNativeDateAdapter} from '@angular/material/core';
 import { periods } from '../../model/periods.type';
 import zoomPlugin from 'chartjs-plugin-zoom';
+import { options } from '../common/chartOptions';
 
 Chart.register(...registerables);
 Chart.register(zoomPlugin);
@@ -99,45 +100,6 @@ export class ChartComponent implements AfterViewInit {
     this.modifiedChartData = structuredClone(this.chartData());
     const canvas = document.getElementById(`Chart-${this.chartId}`) as HTMLCanvasElement;
     const ctx = canvas.getContext('2d');
-
-    // Define chart options
-    const options: any = {
-      // maintainAspectRatio: false,
-      skipNull: true,
-      responsive: true,
-      scales: {
-        y: {
-          grid: {
-            display: true
-          },
-          border: {
-            dash: [6,4],
-            display: false
-          },
-          ticks: {
-            callback: (value: any) => `$${value.toLocaleString()}`, // Format y-axis labels as currency
-          }
-        },
-        x: {
-          grid: {
-            display: false
-          }
-        }
-      },
-      layout: {
-        padding: {
-            left: 20,
-            right: 20,
-            top: 20,
-            bottom: 20
-        }
-      },
-      plugins: {
-        legend: {
-          display: false
-        }
-      }
-    };
 
     let data: any = this.modifiedChartData.testData[this.testDataIndex];
     let chartType: any = this.modifiedChartData.chartType;
