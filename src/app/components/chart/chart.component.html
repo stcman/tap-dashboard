@@ -1,15 +1,19 @@
 <div class="chart-item">
+  @if (modifiedChartData){
   <div class="top-container">
     <div class="left">
       <h2>{{chartData().chartName}}</h2>
-      <p>Looking at period of June 1 - July 1</p>
+      @if(modifiedChartData.testData[this.testDataIndex].hasDates){
+        <p>Looking at period of {{modifiedChartData.testData[this.testDataIndex].range?.start}} - {{modifiedChartData.testData[this.testDataIndex].range?.end}}</p>
+      }@else {
+        <p>Looking at period of May 1 - May 11</p>
+      }
     </div>
     @if(chartData().chartType === 'line') {
       <div class="right">
         <div class="filter-div">
-          <mat-form-field>
-            <mat-label>Filter</mat-label>
-            <mat-select (selectionChange)="this.filterChanged($any($event))">
+          <mat-form-field appearance="outline" class="custom-select">
+            <mat-select (selectionChange)="this.filterChanged($any($event))" placeholder="Filter">
               @for (period of periods; track period) {
                 <mat-option [value]="period.value">{{period.viewValue}}</mat-option>
               }
@@ -18,11 +22,10 @@
         </div>
         @if(selectedFilter() === 'custom'){
           <div class="date-pickers">
-            <mat-form-field>
-              <mat-label>Enter a date range</mat-label>
+            <mat-form-field appearance="outline" class="custom-range">
               <mat-date-range-input [rangePicker]="picker">
-                <input (dateChange)="this.startDateChange($any($event))" matStartDate placeholder="Start date">
-                <input (dateChange)="this.endDateChange($any($event))" matEndDate placeholder="End date">
+                <input (dateChange)="this.handleDateRangeChange($any($event))" matStartDate placeholder="Start date" [attr.data-selection]="'start'">
+                <input (dateChange)="this.handleDateRangeChange($any($event))" matEndDate placeholder="End date" [attr.data-selection]="'end'">
               </mat-date-range-input>
               <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
               <mat-date-range-picker #picker></mat-date-range-picker>
@@ -32,13 +35,12 @@
       </div>
     }
   </div>
-  @if (modifiedChartData){
     <div class="all-stats">
-      @for (dataset of modifiedChartData.testData[0].datasets; track $index){
+      @for (dataset of modifiedChartData.testData[this.testDataIndex].datasets; track $index){
         <div class="stat-container">
           <div class="count-group">
             <div class="counter">
-              <h1>$17,271</h1>
+              <h1>${{dataset.value || '17,258'}}</h1>
             </div>
             <p class="diff-counter">+ 1.12%</p>
           </div>
@@ -51,7 +53,10 @@
     </div>
   }
   
-  <canvas class="chart-canvas" id="Chart-{{chartId}}">
-    {{ chart }}
-  </canvas>
+  <div class="canvas-container">
+    <canvas class="chart-canvas" id="Chart-{{chartId}}">
+      {{ chart }}
+    </canvas>
+  </div>
+  
 </div>

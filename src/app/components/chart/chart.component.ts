@@ -1,13 +1,16 @@
-import { Component, OnInit, AfterViewInit, input, signal, inject } from '@angular/core';
-import { Chart, registerables, ChartType } from 'chart.js';
+import { Component, AfterViewInit, input, signal } from '@angular/core';
+import { Chart, registerables } from 'chart.js';
 import {MatSelectModule} from '@angular/material/select';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatInputModule} from '@angular/material/input';
 import {MatDatepickerModule} from '@angular/material/datepicker';
 import { DateTime } from 'luxon';
 import {provideNativeDateAdapter} from '@angular/material/core';
+import { periods } from '../../model/periods.type';
+import zoomPlugin from 'chartjs-plugin-zoom';
 
 Chart.register(...registerables);
+Chart.register(zoomPlugin);
 
 @Component({
   selector: 'app-chart',
@@ -20,19 +23,27 @@ Chart.register(...registerables);
 
 export class ChartComponent implements AfterViewInit {
   
-  chartData :any = input('');
+  chartId: string = (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
   selectedFilter = signal<string>('none');
-
+  filterValues: number[] = [];
+  dateRange: any = {};
+  chart: any;
+  chartData: any = input('');
   modifiedChartData: any;
-  filterValues:any = [];
-  
-  periods: any = [
+  periods: periods[] = [
     {value: 'none', viewValue: 'None'},
     {value: 'last-m', viewValue: 'Last Month'},
     {value: 'last-q', viewValue: 'Last Quarter'},
     {value: 'last-y', viewValue: 'Last Year'},
     {value: 'custom', viewValue: 'Custom'}
   ];
+  testDataIndex: number = 2;
+
+  ngAfterViewInit(): void {
+    setTimeout(() => {
+      this.buildChart('none');
+    }, 0);
+  }
 
   filterChanged(option: {value: string}){
     console.log(option.value)
@@ -42,24 +53,45 @@ export class ChartComponent implements AfterViewInit {
     this.buildChart(option.value);
   }
 
-  startDateChange(event: any){
-    console.log(event)
+  handleDateRangeChange(event: any){
+    this.filterValues = [];
+    let date = DateTime.fromJSDate(event.value);
+    let type = event.targetElement.dataset.selection;
+    if(type === 'start'){
+      this.dateRange.startText = date.toFormat("MMM d");
+      this.dateRange.startDate = date;
+    }else{
+      this.dateRange.endText = date.toFormat("MMM d");
+      this.dateRange.endDate = date;
+      this.chart.destroy();
+      this.buildChart('custom');
+    }
   }
 
-  endDateChange(event: any){
-    console.log(event)
-  }
+  getTotals(dataset: any, chartType: string){
+    let sum = 0;
+    let avg = 0;
+    let value;
 
-  constructor() {}
+    let USDollar = new Intl.NumberFormat('en-US', {
+      currency: 'USD',
+      maximumFractionDigits: 0, 
+      minimumFractionDigits: 0, 
+    });
 
-  chartId = (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
-  
-  chart: any;
+    if(chartType === 'scatter'){
+      sum = dataset.data.reduce((partialSum: any, b: any) => partialSum + b.y, 0);
+      avg = (sum / dataset.data.length) || 0;
 
-  ngAfterViewInit(): void {
-    setTimeout(() => {
-      this.buildChart('none');
-    }, 0);
+      value = avg;
+    }else{
+      sum = dataset.data.reduce((partialSum: any, b: any) => partialSum + b, 0);
+      avg = (sum / dataset.data.length) || 0;
+
+      value = USDollar.format(avg);
+    }
+
+    dataset.value = value;
   }
 
 
@@ -70,6 +102,7 @@ export class ChartComponent implements AfterViewInit {
 
     // Define chart options
     const options: any = {
+      // maintainAspectRatio: false,
       skipNull: true,
       responsive: true,
       scales: {
@@ -106,29 +139,55 @@ export class ChartComponent implements AfterViewInit {
       }
     };
 
-    let data: any = this.modifiedChartData.testData[0];
+    let data: any = this.modifiedChartData.testData[this.testDataIndex];
     let chartType: any = this.modifiedChartData.chartType;
-
+    
     if (data.hasDates){
       let arr: any = [];
 
       for(let i = 0; i < data.labels.length; i++){
-        let el = data.labels[i]
+        let el = data.labels[i];
         let dt = DateTime.now();
         let labelDate = DateTime.fromISO(el);
 
         if(filterOption === 'last-m'){
           let lastMonth = dt.minus({months: 1});
-          labelDate > lastMonth.startOf('month') && labelDate < lastMonth.endOf('month') ? arr.push(`${labelDate.toFormat("MMM d")}`) : this.filterValues.push(i);
+          let start = lastMonth.startOf('month');
+          let end = lastMonth.endOf('month');
+
+          labelDate > start && labelDate < end ? arr.push(`${labelDate.toFormat("MMM d")}`) : this.filterValues.push(i);
+          this.modifiedChartData.testData[this.testDataIndex].range.start = start.toFormat("MMM d");
+          this.modifiedChartData.testData[this.testDataIndex].range.end = end.toFormat("MMM d");
         }else if(filterOption === 'last-q'){
           let lastMonth = dt.minus({months: 3});
+          let start = lastMonth.startOf('quarter');
+          let end = lastMonth.endOf('quarter');
+
           labelDate > lastMonth.startOf('quarter') && labelDate < lastMonth.endOf('quarter') ? arr.push(`${labelDate.toFormat("MMM d")}`) : this.filterValues.push(i);
+          this.modifiedChartData.testData[this.testDataIndex].range.start = start.toFormat("MMM d");
+          this.modifiedChartData.testData[this.testDataIndex].range.end = end.toFormat("MMM d");
         }else if(filterOption === 'last-y'){
           let lastYear = dt.minus({months: 12});
+          let start = lastYear.startOf('year');
+          let end = lastYear.endOf('year');
+
           labelDate > lastYear.startOf('year') && labelDate < lastYear.endOf('year') ? arr.push(`${labelDate.toFormat("MMM d")}`) : this.filterValues.push(i);
+          this.modifiedChartData.testData[this.testDataIndex].range.start = start.toFormat("MMM d");
+          this.modifiedChartData.testData[this.testDataIndex].range.end = end.toFormat("MMM d");
         }else if(filterOption === 'custom'){
-          arr.push(`${labelDate.toFormat("MMM d")}`);
+          let start = this.dateRange.startDate;
+          let end = this.dateRange.endDate;
+          
+          if(start & end){
+            labelDate > start && labelDate < end ? arr.push(`${labelDate.toFormat("MMM d")}`) : this.filterValues.push(i);
+            this.modifiedChartData.testData[this.testDataIndex].range.start = this.dateRange.startText;
+            this.modifiedChartData.testData[this.testDataIndex].range.end = this.dateRange.endText;
+          }
         }else{
+          let start = DateTime.fromISO(data.labels[0]);
+          let end = DateTime.fromISO(data.labels[data.labels.length-1]);
+          this.modifiedChartData.testData[this.testDataIndex].range.start = start.toFormat("MMM d");
+          this.modifiedChartData.testData[this.testDataIndex].range.end = end.toFormat("MMM d");
           arr.push(`${labelDate.toFormat("MMM d")}`);
         }
 
@@ -149,6 +208,8 @@ export class ChartComponent implements AfterViewInit {
           return !this?.filterValues?.includes(idx);
         })
 
+        this.getTotals(dataset, chartType);
+
         if(chartType === 'line'){
           const gradient = ctx.createLinearGradient(0, 0, 0, 400);
           gradient.addColorStop(0, `rgba(${color}, 0.5)`);
@@ -159,14 +220,27 @@ export class ChartComponent implements AfterViewInit {
           dataset.tension = 0.05;
           dataset.pointRadius = 0;
           dataset.fill = true;
+          options.plugins.zoom = {
+            zoom: {
+              wheel: {
+                enabled: true,
+              },
+              pinch: {
+                enabled: true
+              },
+              mode: 'xy',
+            }
+          }
         }else if(chartType === 'bar'){
           dataset.backgroundColor = `rgb(${color})`;
           dataset.borderColor = `rgb(${color})`;
           dataset.borderRadius = 5;
           dataset.borderSkipped = false;
           dataset.fill = true;
-        }else if(chartType === 'pie'){
-          options.scales = {};
+        }else if(chartType === 'scatter'){
+          options.scales.x.ticks = {
+            callback: (value: any) => `${DateTime.fromMillis(value).toFormat("MMM d")}`, // Format y-axis labels as currency
+          }
         }
       }
 

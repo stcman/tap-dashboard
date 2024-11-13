@@ -6,8 +6,9 @@
   grid-auto-rows: 1fr
 }
 
-@media only screen and (max-width: 600px) {
+@media only screen and (max-width: 800px) {
   .chart-container {
     grid-template-columns: 1fr;
+    grid-auto-rows: auto;
   }
 }
